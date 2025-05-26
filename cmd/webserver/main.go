@@ -1,26 +1,32 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 
+	"github.com/ossan-dev/graphitepoc/internal/config"
 	"github.com/ossan-dev/graphitepoc/internal/todos"
 )
 
+var todoHandler *todos.TodoHandler
+
 func init() {
-	var err error
-	// HACK: fix this to make it work with IPv6
-	todos.GraphiteConn, err = net.Dial("tcp", fmt.Sprintf("%s:%s", "0.0.0.0", "2003"))
+	graphiteHost := config.GetEnvOrDefault("GRAPHITE_HOSTNAME", "graphite")
+	graphitePort := config.GetEnvOrDefault("GRAPHITE_PORT", "2003")
+	conn, err := net.Dial("tcp", net.JoinHostPort(graphiteHost, graphitePort))
 	if err != nil {
 		panic(err)
+	}
+	todoHandler = todos.NewTodoHandler(conn)
+	if todoHandler == nil {
+		panic("could not start the application")
 	}
 }
 
 func main() {
-	defer todos.GraphiteConn.Close()
-	http.HandleFunc("/todo", todos.GetTodoByID)
-	http.HandleFunc("/todos", todos.GetTodos)
+	defer todoHandler.GraphiteConn.Close()
+	http.HandleFunc("/todo", todoHandler.GetTodoByID)
+	http.HandleFunc("/todos", todoHandler.GetTodos)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}

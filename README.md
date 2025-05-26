@@ -9,9 +9,9 @@ To run it:
 
 To test it:
 
-1. `curl <http://localhost:8080/todos>` => working
-2. `curl <http://localhost:8080/todo?id=1>` => working
-3. `curl <http://localhost:8080/todo?id=11>` => not found
+1. `curl http://localhost:8080/todos` => working
+2. `curl http://localhost:8080/todo?id=1` => working
+3. `curl http://localhost:8080/todo?id=11` => not found
 
 To build it:
 
@@ -30,3 +30,13 @@ To run it:
 To query metrics:
 
 1. `curl "http://0.0.0.0:80/render?target=consolidateBy(webserver.get_todo_by_id.errors.not_found%2C%27sum%27)&from=-1h&format=json"`
+
+## docker-compose
+
+To build it:
+
+1. `docker-compose build --no-cache`
+
+To run it:
+
+1. `docker-compose run --service-ports webserver`

@@ -1,0 +1,31 @@
+services:
+  webserver:
+    build: "."
+    container_name: webserver
+    environment:
+      - GRAPHITE_HOSTNAME=graphite
+      - GRAPHITE_PLAINTEXT_PORT=2003
+    ports:
+      - 8080:8080
+    depends_on:
+      - graphite
+    networks:
+      - todo-network
+    
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite
+    ports:
+      - 80:80
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+    restart: always
+    networks:
+      - todo-network
+  
+networks:
+  todo-network:
+    driver: bridge
+
