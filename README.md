@@ -25,11 +25,21 @@ To run a container:
 
 To run it:
 
-1. `docker run -d  --name graphite  --restart=always  -p 80:80  -p 2003-2004:2003-2004  -p 2023-2024:2023-2024  -p 8125:8125/udp  -p 8126:8126  graphiteapp/graphite-statsd`
+1. `docker run  --name graphite  --restart=always  -p 80:80  -p 2003-2004:2003-2004  -p 2023-2024:2023-2024  -p 8125:8125/udp  -p 8126:8126  graphiteapp/graphite-statsd`
 
 To query metrics:
+Enconding:
 
-1. `curl "http://0.0.0.0:80/render?target=consolidateBy(webserver.get_todo_by_id.errors.not_found%2C%27sum%27)&from=-1h&format=json"`
+- "'" => %27
+- "," => %2C
+
+1. `curl "http://0.0.0.0:80/render?target=consolidateBy(webserver.get_todos.success%2C%27sum%27)&from=-1h&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=removeEmptySeries(webserver.get_todos.success%2C0.1)&from=-1h&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=consolidateBy(webserver.get_todos.success%2C%27sum%27)&from=-10min&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=maxSeries(webserver.get_todos.success)&from=-10min&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=removeBelowValue(webserver.get_todos.success%2C1)&from=-15min&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=removeBelowValue(transformNull(webserver.get_todos.success)%2C0)&from=-60min&format=json"`
+1. `curl "http://0.0.0.0:80/render?target=removeBelowValue(transformNull(webserver.get_todos.success)%2C%200)&format=json"`
 
 ## docker-compose
 
@@ -39,4 +49,14 @@ To build it:
 
 To run it:
 
-1. `docker-compose run --service-ports webserver`
+1. `docker-compose run -d --service-ports webserver`
+
+To stop it:
+
+1. `docker-compose down --remove-orphans`
+
+## Integration Tests
+
+To run it:
+
+1. `go test -v -tags=integration ./...`

@@ -34,13 +34,15 @@ func NewTodoHandler(conn net.Conn) *TodoHandler {
 func (t *TodoHandler) GetTodoByID(w http.ResponseWriter, r *http.Request) {
 	rawID := r.URL.Query().Get("id")
 	if rawID == "" {
-		metrics.WriteMetricWithPlaintext(t.GraphiteConn, "webserver.get_todo_by_id.errors.invalid_request", 1.0)
+		metrics.WriteMetricWithPlaintext(t.GraphiteConn, "webserver.get_todo_by_id.errors.missing_id", 1.0)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("please provide a TODO ID"))
 		return
 	}
 	id, err := strconv.Atoi(rawID)
 	if err != nil {
-		metrics.WriteMetricWithPlaintext(t.GraphiteConn, "webserver.get_todo_by_id.errors.invalid_request", 1.0)
+		metrics.WriteMetricWithPlaintext(t.GraphiteConn, "webserver.get_todo_by_id.errors.invalid_id", 1.0)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("please provide a numeric TODO ID"))
 		return
 	}

@@ -1,0 +1,34 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "webserver-local-debug",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/webserver/main.go",
+      "env": {
+        "GRAPHITE_HOSTNAME": "localhost",
+        "GRAPHITE_PORT": "2003"
+      }
+    },
+    {
+      "name": "debug-integration-tests",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}",
+      "buildFlags": [
+        "-tags=integration"
+      ],
+      "args": [
+        "-test.v",
+        "-test.run",
+        "TestGetTodos"
+      ]
+    }
+  ]
+}
