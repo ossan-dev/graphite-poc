@@ -49,7 +49,7 @@ To build it:
 
 To run it:
 
-1. `docker-compose run -d --service-ports webserver`
+1. `docker-compose up -d`
 
 To stop it:
 
@@ -60,3 +60,29 @@ To stop it:
 To run it:
 
 1. `go test -v -tags=integration ./...`
+1. `go test ./tests -tags=integration`
+
+## Run containers after conflicts
+
+### Repro the issue
+
+1. `docker-compose up -d`
+2. `docker ps` => you should see the two containers up & running
+3. `go test ./tests -tags=integration`
+
+    ```text
+    --- FAIL: TestGetTodos (0.86s)
+        get_todos_test.go:17: 
+                    Error Trace:    $HOME/graphite-poc/tests/container.go:24
+                                                            $HOME/graphite-poc/tests/get_todos_test.go:17
+                    Error:          Received unexpected error:
+                                    compose up: Error response from daemon: Conflict. The container name "/graphite" is already in use by container "ceb36087cd8f58a82bdc07d755c36b7e1d043b5e4a670a37cf44c1947f6c7826". You have to remove (or rename) that container to be able to reuse that name.
+                    Test:           TestGetTodos
+    FAIL
+    FAIL    github.com/ossan-dev/graphitepoc/tests  7.805s
+    FAIL
+    ```
+
+### Fix the issue
+
+The fix for the code is contained in the commit with the message `fixConflictContainers`. We try to spin up the containers again in case of an issue.

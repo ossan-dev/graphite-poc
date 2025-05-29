@@ -5,9 +5,33 @@ import (
 	"os"
 	"testing"
 
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
 	"github.com/stretchr/testify/require"
 	tc "github.com/testcontainers/testcontainers-go/modules/compose"
 )
+
+func reRunContainersAfterConflict(ctx context.Context, composeReq tc.ComposeStack) error {
+	dockerClient, err := client.NewClientWithOpts()
+	if err != nil {
+		return err
+	}
+	dockerClient.NegotiateAPIVersion(ctx)
+	containers := composeReq.Services()
+	for _, c := range containers {
+		err = dockerClient.ContainerStop(ctx, c, container.StopOptions{})
+		if err != nil {
+			return err
+		}
+		err = dockerClient.ContainerRemove(ctx, c, container.RemoveOptions{})
+		if err != nil {
+			return err
+		}
+	}
+	return composeReq.
+		Up(ctx, tc.Wait(true))
+}
 
 func spawnWebServerContainer(t *testing.T) {
 	t.Helper()
@@ -21,5 +45,9 @@ func spawnWebServerContainer(t *testing.T) {
 	t.Cleanup(cancel)
 	err = compose.
 		Up(ctx, tc.Wait(true))
+	if err != nil && errdefs.IsConflict(err) {
+		require.NoError(t, reRunContainersAfterConflict(ctx, compose))
+		return
+	}
 	require.NoError(t, err)
 }
